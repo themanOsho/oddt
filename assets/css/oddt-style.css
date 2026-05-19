@@ -1,0 +1,224 @@
+/**
+ * oddtranslator - Widget Styles
+ * Floating language selector button & dropdown
+ */
+
+:root {
+  --oddt-primary: #7c3aed;
+  --oddt-primary-dark: #6d28d9;
+  --oddt-border: #e2e8f0;
+  --oddt-bg-light: #f1f5f9;
+  --oddt-text: #0f172a;
+  --oddt-text-secondary: #475569;
+}
+
+.oddt-floating-btn {
+  font-family: system-ui, -apple-system, 'Inter', sans-serif;
+}
+
+.oddt-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  height: 42px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--oddt-primary) 0%, var(--oddt-primary-dark) 100%);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.oddt-trigger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 40px rgba(124, 58, 237, 0.4);
+}
+
+.oddt-trigger:active {
+  transform: translateY(0);
+  opacity: 0.95;
+}
+
+.oddt-trigger:focus-visible {
+  outline: 2px solid var(--oddt-primary);
+  outline-offset: 2px;
+}
+
+.oddt-dropdown {
+  z-index: 1000;
+  min-width: 180px;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--oddt-border);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+  animation: oddt-slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.oddt-dropdown.hidden {
+  display: none !important;
+}
+
+@keyframes oddt-slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.oddt-dropdown {
+  opacity: 0;
+  transform: translateY(0.75rem);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+}
+
+#oddt-widget[data-open="true"] .oddt-dropdown,
+#oddt-widget:hover .oddt-dropdown {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.oddt-dropdown ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.oddt-lang-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Remove extra whitespace around dropdown contents */
+.oddt-dropdown {
+  padding: 4px 0;
+}
+
+.oddt-lang-btn {
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--oddt-text-secondary);
+  transition: background 0.2s ease, color 0.2s ease;
+  outline: none;
+}
+
+.oddt-lang-btn:first-child {
+  border-radius: 11px 11px 0 0;
+}
+
+.oddt-lang-btn:last-child {
+  border-radius: 0 0 11px 11px;
+}
+
+.oddt-lang-btn:hover:not(.oddt-active) {
+  background: var(--oddt-bg-light);
+}
+
+.oddt-lang-btn.oddt-active {
+  background: var(--oddt-bg-light);
+  color: var(--oddt-primary);
+  font-weight: 600;
+}
+
+.oddt-lang-btn:focus-visible {
+  outline: 2px solid var(--oddt-primary);
+  outline-offset: -2px;
+}
+
+.oddt-lang-btn .fi {
+  width: 20px;
+  height: 14px;
+}
+
+.oddt-lang-name {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.oddt-trigger .fi {
+  width: 18px;
+  height: 12px;
+}
+
+.oddt-trigger-code {
+  margin-left: 0.45rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+/* hover visual for buttons handled via class to avoid inline style toggles */
+.oddt-lang-btn.hovered:not(.oddt-active) {
+  background: var(--oddt-bg-light);
+}
+
+/* Inline dropdown variant */
+.oddt-inline-dropdown {
+  display: inline-block;
+  position: relative;
+}
+
+.oddt-inline-dropdown .oddt-trigger {
+  padding: 0 16px;
+  width: auto;
+  height: 40px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+}
+
+.oddt-inline-dropdown .oddt-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+}
+
+/* Accessibility: Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .oddt-trigger,
+  .oddt-lang-btn,
+  .oddt-dropdown {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Small screens */
+@media (max-width: 640px) {
+  .oddt-trigger {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    font-size: 0;
+    min-width: 48px;
+  }
+
+  .oddt-trigger .oddt-trigger-code {
+    display: none;
+  }
+
+  .oddt-dropdown {
+    min-width: 160px;
+  }
+
+  .oddt-lang-btn {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+}

@@ -1,11 +1,13 @@
-# 🌍 oddtranslator
+<h1>
+  <img src="assets/oddt-logo-solid.png" alt="Logo" width="36" height="36" style="vertical-align: middle;">
+  oddtranslator
+</h1>
 
 **Self-contained, zero-code drop-in translation engine for any PHP website.**
 
 Upload the folder → run the one-click activator → instantly add professional multi-language translation to your entire site with smart caching. No coding, no plugins, no bloat.
 
-![ODDT Banner](https://via.placeholder.com/1200x400/0A2540/00D4FF?text=oddtranslator+-+Zero-Code+Translation+Engine)
-*Banner coming soon with final branding*
+![Setup Wizard](assets/images/welcome-screen.png)
 
 ## Table of Contents
 
@@ -23,15 +25,18 @@ Upload the folder → run the one-click activator → instantly add professional
 
 - **True Zero-Code Integration** — `oddt-enable.php` automatically activates the engine (no manual `require_once`)
 - **Works on Any PHP Site** — Plain PHP, WordPress, Laravel, custom CMS, legacy code — everything
-- **Smart Auto-Translation** — Automatically translates page content (headings, paragraphs, spans, articles, etc.)
-- **Configurable Widget** — Floating button or dropdown selector (multiple positions)
+- **SEO-Friendly URL Translation** — Zero-config `?lang=es` parameter for indexable, crawlable pages
+- **Server-Side Rendering** — Optional output buffering for full-page HTML translation (faster, no JS parsing)
+- **Smart Language Widget** — Floating button or dropdown with dynamic viewport positioning (never clips off-screen)
+- **8 Languages Built-In** — English, Spanish, French, German, Italian, Portuguese, Japanese, Chinese
+- **Configurable Widget** — Multiple button styles and positions, fully customizable skip selectors
 - **MyMemory Default** — Works immediately with no API key (5k → 50k characters/day)
-- **Multi-Provider Support** — Easily switch to DeepL, Microsoft Translator, etc. via your own keys
-- **Lightning-Fast Caching** — MD5-based cache in your database (repeated text = instant, zero cost)
+- **Multi-Provider Support** — Easily switch to DeepL, Microsoft Translator, LibreTranslate via API keys
+- **Composite-Key Caching** — MD5 hash + target language = zero cache collisions between languages
 - **Skip Protection** — Protect prices, brand names, code blocks with `.oddt-skip` or `data-oddt-skip`
 - **Beautiful Tailwind Admin** — Modern dashboard with toast notifications
 - **Fully Isolated** — All CSS/JS uses `oddt-` namespace (no theme conflicts)
-- **Production Ready** — PDO prepared statements, encrypted keys, installer lock
+- **Production Ready** — PDO prepared statements, CSRF tokens, installer lock file
 
 ## 🚀 Quick Start (60 seconds)
 
@@ -48,12 +53,14 @@ Upload the folder → run the one-click activator → instantly add professional
 
 ## 🔧 How It Works
 
-1. `boot.php` + output buffering automatically injects assets and widget.
-2. Visitor clicks the language widget.
-3. Frontend JS scans the page and sends text blocks via AJAX.
-4. Backend checks MD5 cache → returns instantly if available.
-5. On cache miss: translates using the active provider → saves to cache → updates DOM live.
-6. All changes made in the admin panel reflect immediately on the frontend.
+1. `boot.php` checks for `.installed` lock and conditionally starts `HtmlInjector::start()` for automatic widget injection.
+2. On requests with `?lang=es` (or any target language), output buffering intercepts the page HTML and translates visible text nodes server-side.
+3. Without `?lang` parameter, pages render in English (original language) — no unwanted translation.
+4. `oddt-translator.js` renders the floating language selector widget with dynamic viewport positioning.
+5. Visitor clicks the widget → selects a language → page reloads with `?lang=XX` appended to URL.
+6. Backend checks MD5 cache (keyed by hash + language) → returns instantly if available.
+7. On cache miss: translates using the active provider → saves to composite-key cache → page displays translated content.
+8. All skip selectors (`.oddt-skip`, `data-oddt-skip`, `.price`, `.no-translate`) remain untouched during translation.
 
 ## 📁 Folder Structure
 
@@ -61,28 +68,57 @@ Upload the folder → run the one-click activator → instantly add professional
 oddt/
 ├── assets/
 │   ├── css/
-│   │   ├── oddt-style.css
-│   │   └── oddt-admin.css
+│   │   ├── oddt-style.css           # Floating widget + dropdown styling (responsive, accessible)
+│   │   └── oddt-admin.css           # Tailwind brand overrides for admin panel
 │   └── js/
-│       ├── oddt-translator.js
-│       └── oddt-admin.js
+│       ├── oddt-translator.js       # Frontend widget: auto-positioning, language selector, URL switching
+│       └── oddt-admin.js            # Admin dashboard: form handling, notifications
+│
 ├── src/
 │   ├── Auth/
+│   │   └── Session.php              # Native PHP session management + login guard
 │   ├── Database/
+│   │   └── Connection.php           # PDO singleton, settings & cache helpers, composite key support
 │   ├── Engine/
-│   ├── Providers/          # MyMemory (default) + others
+│   │   ├── Translator.php           # Public translate() API, caching, provider abstraction
+│   │   └── ProviderRegistry.php     # Factory pattern: loads active provider from DB
+│   ├── Providers/
+│   │   ├── ProviderInterface.php    # Contract for all translation providers
+│   │   ├── MyMemoryProvider.php     # Default (free, no key required)
+│   │   ├── DeepLProvider.php        # Premium provider (API key)
+│   │   ├── MicrosoftTranslatorProvider.php # Enterprise provider (API key + region)
+│   │   ├── LibreTranslateProvider.php     # Self-hosted or public instance
+│   │   └── GoogleFreeProvider.php   # Legacy fallback
 │   └── Utils/
-├── views/                  # Tailwind admin pages
-├── admin.php
-├── boot.php
-├── installer.php
-├── oddt-enable.php         # Zero-code activator
-├── translate.php
-├── config.php              # Auto-generated
-├── .installed              # Install lock
-├── PRD.md
+│       └── HtmlInjector.php         # Output buffering, automatic asset injection before </body>
+│
+├── views/                           # Admin panel pages (pure Tailwind)
+│   ├── header.php                   # Nav, CDN links, admin CSS
+│   ├── footer.php                   # Common footer snippet
+│   ├── dashboard.php                # Cache stats, system health
+│   ├── configure.php                # Widget type, position, skip selectors
+│   ├── integrations.php             # Provider selector, API key forms
+│   ├── settings.php                 # Database connection tester
+│   └── license.php                  # Future premium features
+│
+├── docs/
+│   ├── file-str.md                  # This folder structure reference
+│   ├── PRD.md                       # Product requirements document
+│   └── roadmap.md                   # Development roadmap
+│
+├── admin.php                        # Central admin router + auth guard
+├── boot.php                         # Single entry point: loads classes, starts injection/translation
+├── config.php                       # Auto-generated by installer (DB credentials)
+├── installer.php                    # Secure backend installer logic (CSRF protected)
+├── installer-form.php               # Installer UI (4-step wizard with Tailwind)
+├── login.php                        # Admin login screen
+├── translate.php                    # AJAX endpoint for frontend language requests
+├── oddt-enable.php                  # Zero-code activator (injects boot.php into index.php)
+├── .installed                       # Lock file created after successful install
+├── .gitignore
+├── LICENSE
 ├── README.md
-└── .gitignore
+└── vendor/                          # stichoza (bundled for legacy GoogleFreeProvider)
 ```
 
 ## 🛠️ Admin Dashboard
@@ -92,10 +128,56 @@ Access at `/oddt/admin.php` after login.
 - **Dashboard** — Translation stats & cache overview
 - **Configure** — Widget type (floating/dropdown), position, skip selectors
 - **Integrations** — Switch translation provider + enter your API keys
-- **Settings** — Database connection test
+- **Settings** — Database connection test, general settings
 - **License** — Premium features (future)
 
 All settings apply live without clearing cache.
+
+## 🌐 Language Switching via URL
+
+Pages are translated by appending the `?lang` parameter to the URL:
+
+```
+https://your-site.com/page.php?lang=es       # Spanish
+https://your-site.com/page.php?lang=fr       # French
+https://your-site.com/page.php?lang=de       # German
+https://your-site.com/page.php                # English (default, no translation)
+```
+
+**Benefits:**
+- SEO-friendly: Search engines can index translated versions separately
+- Shareable: Users can send translated links to friends
+- Zero JavaScript: Works even if frontend JS is disabled
+- Bookmarkable: Translations persist across page reloads
+- No client-side parsing required: Server handles all translation
+
+The frontend widget (`oddt-translator.js`) automatically handles language switching by reloading the page with the appropriate `?lang=` parameter.
+
+## 🎯 Widget Positioning & Behavior
+
+- **Floating Button** — Fixed position (top-left, top-right, bottom-left, bottom-right)
+  - Responsive: Scales down on mobile devices
+  - Auto-repositioning: Dropdown never goes off-screen
+  - Smooth animations: Slide-in effect on open
+
+- **Inline Dropdown** — Flows with page content (useful for headers/footers)
+  - Takes up minimal space
+  - Inherits page styling context
+
+Configure widget behavior in the admin panel → **Configure** page.
+
+## 🚫 Skip Selectors
+
+Elements matching these selectors are protected from translation:
+
+```html
+<p class="oddt-skip">This text won't be translated</p>
+<div data-oddt-skip>Protected content</div>
+<span class="price">$19.99</span>          <!-- Prices never translate -->
+<code class="no-translate">myFunction()</code>
+```
+
+Add custom selectors in the admin panel.
 
 ## 🔑 Integrations & Providers
 

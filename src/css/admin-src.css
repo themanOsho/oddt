@@ -1,0 +1,9 @@
+/* ODDT admin source CSS
+   This build includes Tailwind's base (preflight) so admin pages are isolated and styled predictably.
+*/
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Admin-specific customizations. Admin CSS can safely use unprefixed Tailwind classes. */

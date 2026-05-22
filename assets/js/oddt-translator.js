@@ -8,6 +8,9 @@ class OddtTranslator {
     // Selectors that should be skipped during translation.
     this.skipSelectors = '[data-oddt-skip], .oddt-skip, .price, .no-translate';
     this.isTranslating = false;
+    this.isTriggerHovered = false;
+    this.isDropdownHovered = false;
+    this._hoverCloseTimeout = null;
 
     // Supported languages, labels and flag icon country codes.
     this.languages = {
@@ -82,13 +85,14 @@ class OddtTranslator {
         const href = primary.getAttribute('href').split('?')[0];
         const stamped = href + '?v=' + Date.now();
         primary.setAttribute('href', stamped);
-        if (primary.parentElement !== document.head) {
-          document.head.appendChild(primary);
+        const head = document.head;
+        if (primary.parentElement !== head) {
+          head.appendChild(primary);
         }
-        const existingComment = Array.from(document.head.childNodes).find(node => node.nodeType === 8 && node.nodeValue.trim() === 'oddtranslator injection');
+        const existingComment = Array.from(head.childNodes).find(node => node.nodeType === 8 && node.nodeValue.trim() === 'oddtranslator injection');
         if (!existingComment) {
           const comment = document.createComment(' oddtranslator injection ');
-          document.head.insertBefore(comment, primary);
+          head.insertBefore(comment, primary);
         }
         links.slice(1).forEach(l => l.parentElement && l.parentElement.removeChild(l));
         return;
@@ -101,12 +105,13 @@ class OddtTranslator {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
-      const existingComment = Array.from(document.head.childNodes).find(node => node.nodeType === 8 && node.nodeValue.trim() === 'oddtranslator injection');
+      const head = document.head;
+      const existingComment = Array.from(head.childNodes).find(node => node.nodeType === 8 && node.nodeValue.trim() === 'oddtranslator injection');
       if (!existingComment) {
         const comment = document.createComment(' oddtranslator injection ');
-        document.head.appendChild(comment);
+        head.appendChild(comment);
       }
-      document.head.appendChild(link);
+      head.appendChild(link);
     } catch (e) {
       // silently ignore DOM issues
     }
@@ -116,12 +121,16 @@ class OddtTranslator {
     const widget = document.getElementById('oddt-widget');
     if (!widget) return;
 
+    const positionClass = type === 'floating' ? this.getPositionClass(position) : '';
+    const buttonHtml = this.getButtonLabelHtml();
+    const dropdownBase = 'oddt-dropdown oddt-absolute oddt-max-h-72 mb-2 oddt-w-40 oddt-overflow-y-auto oddt-rounded-xl oddt-bg-white oddt-p-1.5 oddt-shadow-2xl oddt-border oddt-border-gray-100 oddt-opacity-0 oddt-translate-y-4 oddt-pointer-events-none oddt-transition-all oddt-duration-200 oddt-ease-in-out';
+
     if (type === 'floating') {
-      widget.className = 'oddt-widget fixed bottom-4 right-4 z-50 inline-block group';
-      widget.innerHTML = `<!-- Floating Wrapper Container (Strictly takes up space of the button only) --><button id="oddt-btn" class="oddt-trigger flex items-center justify-center gap-2 h-12 px-4 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-lg hover:shadow-indigo-500/30 transition-all duration-200 active:scale-95" aria-label="Translate"><span class="fi fi-${this.languages[this.currentLang].flag} shadow-sm rounded-sm" aria-hidden="true"></span><span class="oddt-trigger-code text-sm">${this.languages[this.currentLang].label}</span></button><!-- Dropdown Menu (Positioned absolutely above the button) --><div id="oddt-dropdown" class="oddt-dropdown absolute bottom-full right-0 mb-3 max-h-72 w-45 overflow-y-auto rounded-xl bg-white p-2 shadow-2xl border border-gray-100 opacity-0 translate-y-4 pointer-events-none transition-all duration-300 ease-out"><ul></ul></div>`;
+      widget.className = `oddt-widget oddt-fixed ${positionClass} oddt-z-50 oddt-inline-block oddt-group`;
+      widget.innerHTML = `<!-- oddtranslator Floating Wrapper Container --><button id="oddt-btn" class="oddt-trigger oddt-cursor-pointer oddt-flex oddt-items-center oddt-justify-center oddt-gap-2 oddt-h-12 oddt-px-3 sm:oddt-px-4 oddt-rounded-md oddt-bg-indigo-600 hover:oddt-bg-indigo-700 oddt-text-white oddt-font-semibold oddt-shadow-lg hover:oddt-shadow-indigo-500/30 oddt-transition-all oddt-duration-200 active:oddt-scale-95" aria-label="Translate" aria-expanded="false" aria-controls="oddt-dropdown">${buttonHtml}</button><!-- Dropdown Menu (Positioned absolutely above the button) --><div id="oddt-dropdown" class="${dropdownBase} oddt-bottom-full oddt-right-0" role="menu" aria-orientation="vertical"><ul class="oddt-space-y-0.5"></ul></div>`;
     } else {
-      widget.className = 'oddt-widget relative inline-block';
-      widget.innerHTML = `<!-- Floating Wrapper Container (Strictly takes up space of the button only) --><button id="oddt-btn" class="oddt-trigger inline-flex items-center justify-center gap-2 h-12 px-4 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-lg hover:shadow-indigo-500/30 transition-all duration-200 active:scale-95" aria-label="Select Language"><span class="fi fi-${this.languages[this.currentLang].flag} shadow-sm rounded-sm" aria-hidden="true"></span><span class="oddt-trigger-code text-sm">${this.languages[this.currentLang].label}</span></button><!-- Dropdown Menu (Positioned absolutely above the button) --><div id="oddt-dropdown" class="oddt-dropdown absolute top-full left-0 mt-3 max-h-72 w-45 overflow-y-auto rounded-xl bg-white p-2 shadow-2xl border border-gray-100 opacity-0 translate-y-4 pointer-events-none transition-all duration-300 ease-out"><ul></ul></div>`;
+      widget.className = 'oddt-widget oddt-relative oddt-inline-block';
+      widget.innerHTML = `<!-- oddtranslator Floating Wrapper Container --><button id="oddt-btn" class="oddt-trigger oddt-cursor-pointer oddt-inline-flex oddt-items-center oddt-justify-center oddt-gap-2 oddt-h-12 oddt-px-3 sm:oddt-px-4 oddt-rounded-md oddt-bg-indigo-600 hover:oddt-bg-indigo-700 oddt-text-white oddt-font-semibold oddt-shadow-lg hover:oddt-shadow-indigo-500/30 oddt-transition-all oddt-duration-200 active:oddt-scale-95" aria-label="Select Language" aria-expanded="false" aria-controls="oddt-dropdown">${buttonHtml}</button><!-- Dropdown Menu (Positioned absolutely above the button) --><div id="oddt-dropdown" class="${dropdownBase} oddt-top-full oddt-left-0" role="menu" aria-orientation="vertical"><ul class="oddt-space-y-0.5"></ul></div>`;
     }
 
     const dropdown = widget.querySelector('#oddt-dropdown');
@@ -129,39 +138,77 @@ class OddtTranslator {
 
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();
-      this.toggleDropdown(widget, dropdown);
+      this.toggleDropdown(widget, dropdown, trigger);
     });
 
-    this.populateLanguages(dropdown);
+    trigger.addEventListener('mouseenter', () => {
+      this.isTriggerHovered = true;
+      if (!this.isTranslating) {
+        this.openDropdown(widget, dropdown, trigger);
+      }
+    });
+
+    trigger.addEventListener('mouseleave', () => {
+      this.isTriggerHovered = false;
+      this.scheduleDropdownClose(widget, dropdown, trigger);
+    });
+
+    dropdown.addEventListener('mouseenter', () => {
+      this.isDropdownHovered = true;
+      this.clearHoverClose();
+    });
+
+    dropdown.addEventListener('mouseleave', () => {
+      this.isDropdownHovered = false;
+      this.scheduleDropdownClose(widget, dropdown, trigger);
+    });
+
+    this.populateLanguages(dropdown, widget, trigger);
   }
 
-  toggleDropdown(widget, dropdown) {
+  toggleDropdown(widget, dropdown, trigger) {
     const isOpen = widget.getAttribute('data-open') === 'true';
     if (isOpen) {
-      widget.removeAttribute('data-open');
-      this.removeOpenListeners();
+      this.closeDropdown(widget, dropdown, trigger);
+    } else {
+      this.openDropdown(widget, dropdown, trigger);
+    }
+  }
+
+  openDropdown(widget, dropdown, trigger) {
+    if (widget.getAttribute('data-open') === 'true') {
       return;
     }
 
-    dropdown.classList.remove('hidden');
+    this.clearHoverClose();
+    dropdown.classList.remove('oddt-opacity-0', 'oddt-translate-y-4', 'oddt-pointer-events-none');
+    dropdown.classList.add('oddt-opacity-100', 'oddt-translate-y-0');
     widget.setAttribute('data-open', 'true');
+    trigger.setAttribute('aria-expanded', 'true');
 
     this._outsideClickHandler = (e) => {
       if (!widget.contains(e.target)) {
-        widget.removeAttribute('data-open');
-        this.removeOpenListeners();
+        this.closeDropdown(widget, dropdown, trigger);
       }
     };
     this._escHandler = (e) => {
       if (e.key === 'Escape') {
-        widget.removeAttribute('data-open');
-        this.removeOpenListeners();
+        this.closeDropdown(widget, dropdown, trigger);
       }
     };
     setTimeout(() => {
       document.addEventListener('click', this._outsideClickHandler);
       document.addEventListener('keydown', this._escHandler);
     }, 10);
+  }
+
+  closeDropdown(widget, dropdown, trigger) {
+    this.clearHoverClose();
+    dropdown.classList.add('oddt-opacity-0', 'oddt-translate-y-4', 'oddt-pointer-events-none');
+    dropdown.classList.remove('oddt-opacity-100', 'oddt-translate-y-0');
+    widget.removeAttribute('data-open');
+    trigger.setAttribute('aria-expanded', 'false');
+    this.removeOpenListeners();
   }
 
   removeOpenListeners() {
@@ -176,16 +223,32 @@ class OddtTranslator {
     this._openDropdown = null;
   }
 
+  scheduleDropdownClose(widget, dropdown, trigger) {
+    this.clearHoverClose();
+    this._hoverCloseTimeout = setTimeout(() => {
+      if (!this.isTriggerHovered && !this.isDropdownHovered) {
+        this.closeDropdown(widget, dropdown, trigger);
+      }
+    }, 120);
+  }
+
+  clearHoverClose() {
+    if (this._hoverCloseTimeout) {
+      clearTimeout(this._hoverCloseTimeout);
+      this._hoverCloseTimeout = null;
+    }
+  }
+
   positionDropdown(dropdown, trigger) {
     // No dynamic positioning required for the Tailwind-based fixed wrapper layout.
   }
 
-  getPositionStyle(position) {
+  getPositionClass(position) {
     const positions = {
-      'top-left': 'top: 16px; left: 16px;',
-      'top-right': 'top: 16px; right: 16px;',
-      'bottom-left': 'bottom: 16px; left: 16px;',
-      'bottom-right': 'bottom: 16px; right: 16px;'
+      'top-left': 'oddt-top-4 oddt-left-4',
+      'top-right': 'oddt-top-4 oddt-right-4',
+      'bottom-left': 'oddt-bottom-4 oddt-left-4',
+      'bottom-right': 'oddt-bottom-4 oddt-right-4'
     };
     return positions[position] || positions['bottom-right'];
   }
@@ -194,36 +257,32 @@ class OddtTranslator {
     const language = this.languages[this.currentLang] || this.languages.en;
     return `
       <span class="fi fi-${language.flag}" aria-hidden="true"></span>
-      <span class="oddt-trigger-code">${language.label}</span>
+      <span class="oddt-trigger-code oddt-hidden sm:oddt-inline oddt-text-sm">${language.label}</span>
     `;
   }
 
-  populateLanguages(dropdown) {
+  populateLanguages(dropdown, widget, trigger) {
     // Build the dropdown list with flags and language names.
-    let html = '<ul>';
+    const ul = dropdown.querySelector('ul');
+    let html = '';
 
     for (const [code, meta] of Object.entries(this.languages)) {
       const isActive = code === this.currentLang ? 'oddt-active' : '';
-      html += `<li><button class="oddt-lang-btn ${isActive}" data-lang="${code}" data-lang-name="${meta.name}"><span class="fi fi-${meta.flag}" aria-hidden="true"></span><span class="oddt-lang-name">${meta.name}</span></button></li>`;
+      const activeClass = code === this.currentLang 
+        ? 'oddt-bg-indigo-50/70 oddt-text-indigo-600 oddt-font-semibold' 
+        : 'oddt-text-gray-700 hover:oddt-bg-gray-50 hover:oddt-text-indigo-600 oddt-font-medium';
+      
+      html += `<li role="none"><button class="oddt-lang-btn ${isActive} oddt-cursor-pointer oddt-w-full oddt-flex oddt-items-center oddt-gap-3 oddt-px-3 oddt-py-2 oddt-text-sm ${activeClass} oddt-rounded-lg oddt-transition-colors oddt-duration-150" data-lang="${code}" data-lang-name="${meta.name}" role="menuitem"><span class="fi fi-${meta.flag} oddt-shrink-0 oddt-rounded-sm oddt-shadow-sm" aria-hidden="true"></span><span class="oddt-lang-name oddt-truncate">${meta.name}</span></button></li>`;
     }
 
-    html += '</ul>';
-    dropdown.innerHTML = html;
+    ul.innerHTML = html;
 
     dropdown.querySelectorAll('.oddt-lang-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const lang = btn.getAttribute('data-lang');
         this.switchLanguage(lang);
-        dropdown.classList.add('hidden');
-      });
-
-      btn.addEventListener('mouseover', () => {
-        btn.classList.add('hovered');
-      });
-
-      btn.addEventListener('mouseout', () => {
-        btn.classList.remove('hovered');
+        this.closeDropdown(widget, dropdown, trigger);
       });
     });
   }

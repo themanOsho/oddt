@@ -1,5 +1,5 @@
-<h1>
-  <img src="assets/oddt-logo-solid.png" alt="Logo" width="36" height="36" style="vertical-align: middle;">
+<h1 style="display: flex; align-items: center; gap: 8px;">
+  <img src="assets/oddt-logo-solid.png" alt="Logo" width="32" height="32" style="vertical-align: middle;">
   oddtranslator
 </h1>
 
@@ -7,7 +7,7 @@
 
 Upload the folder → run the one-click activator → instantly add professional multi-language translation to your entire site with smart caching. No coding, no plugins, no bloat.
 
-![Setup Wizard](assets/images/welcome-screen.png)
+![Setup Wizard](assets/screenshots/welcome-screen.png)
 
 ## Table of Contents
 
@@ -15,7 +15,6 @@ Upload the folder → run the one-click activator → instantly add professional
 - [Quick Start (60 seconds)](#-quick-start-60-seconds)
 - [How It Works](#-how-it-works)
 - [Folder Structure](#-folder-structure)
-- [Admin Dashboard](#-admin-dashboard)
 - [Integrations & Providers](#-integrations--providers)
 - [Requirements](#-requirements)
 - [Roadmap](#-roadmap)
@@ -27,23 +26,21 @@ Upload the folder → run the one-click activator → instantly add professional
 - **Works on Any PHP Site** — Plain PHP, WordPress, Laravel, custom CMS, legacy code — everything
 - **SEO-Friendly URL Translation** — Zero-config `?lang=es` parameter for indexable, crawlable pages
 - **Server-Side Rendering** — Optional output buffering for full-page HTML translation (faster, no JS parsing)
-- **Smart Language Widget** — Floating button or dropdown with dynamic viewport positioning (never clips off-screen)
+- **Language Widget** — Floating button
 - **8 Languages Built-In** — English, Spanish, French, German, Italian, Portuguese, Japanese, Chinese
-- **Configurable Widget** — Multiple button styles and positions, fully customizable skip selectors
 - **MyMemory Default** — Works immediately with no API key (5k → 50k characters/day)
 - **Multi-Provider Support** — Easily switch to DeepL, Microsoft Translator, LibreTranslate via API keys
 - **Composite-Key Caching** — MD5 hash + target language = zero cache collisions between languages
 - **Skip Protection** — Protect prices, brand names, code blocks with `.oddt-skip` or `data-oddt-skip`
-- **Beautiful Tailwind Admin** — Modern dashboard with toast notifications
 - **Fully Isolated** — All CSS/JS uses `oddt-` namespace (no theme conflicts)
-- **Production Ready** — PDO prepared statements, CSRF tokens, installer lock file
 
 ## 🚀 Quick Start (60 seconds)
 
-1. Upload the entire `oddt/` folder to your website root.
-2. Visit `https://your-site.com/oddt/oddt-enable.php` → Click **Activate** (zero-code magic).
-3. Run the installer: `https://your-site.com/oddt/installer.php`
-4. Complete the 4-step wizard (database + admin account).
+1. Upload the entire `oddt/` folder to your website root directory.
+2. Visit `https://your-site.com/oddt/oddt-enable.php` to automatically run the zero-code activator. This script will inject the necessary code into your `index.php` to enable the translation engine without any manual coding.
+3. Verify that the activation script displays an `injected` status for your `index.php` file.
+4. Click the "Proceed to Installer" button to run the secure installer.
+4. Complete the 4-step wizard to set up your database connection and admin account.
 5. Done! Your site now has a working translation widget.
 
 **Manual fallback:** Add one line at the top of your `index.php`:
@@ -121,18 +118,6 @@ oddt/
 └── vendor/                          # stichoza (bundled for legacy GoogleFreeProvider)
 ```
 
-## 🛠️ Admin Dashboard
-
-Access at `/oddt/admin.php` after login.
-
-- **Dashboard** — Translation stats & cache overview
-- **Configure** — Widget type (floating/dropdown), position, skip selectors
-- **Integrations** — Switch translation provider + enter your API keys
-- **Settings** — Database connection test, general settings
-- **License** — Premium features (future)
-
-All settings apply live without clearing cache.
-
 ## 🌐 Language Switching via URL
 
 Pages are translated by appending the `?lang` parameter to the URL:
@@ -153,19 +138,6 @@ https://your-site.com/page.php                # English (default, no translation
 
 The frontend widget (`oddt-translator.js`) automatically handles language switching by reloading the page with the appropriate `?lang=` parameter.
 
-## 🎯 Widget Positioning & Behavior
-
-- **Floating Button** — Fixed position (top-left, top-right, bottom-left, bottom-right)
-  - Responsive: Scales down on mobile devices
-  - Auto-repositioning: Dropdown never goes off-screen
-  - Smooth animations: Slide-in effect on open
-
-- **Inline Dropdown** — Flows with page content (useful for headers/footers)
-  - Takes up minimal space
-  - Inherits page styling context
-
-Configure widget behavior in the admin panel → **Configure** page.
-
 ## 🚫 Skip Selectors
 
 Elements matching these selectors are protected from translation:
@@ -176,8 +148,6 @@ Elements matching these selectors are protected from translation:
 <span class="price">$19.99</span>          <!-- Prices never translate -->
 <code class="no-translate">myFunction()</code>
 ```
-
-Add custom selectors in the admin panel.
 
 ## 🔑 Integrations & Providers
 
@@ -200,7 +170,6 @@ Higher-traffic sites can upgrade quality and limits instantly.
 ## Roadmap
 
 - **v0.0.1** — Core engine + MyMemory + Integrations (Current)
-- **v0.0.2** — Premium license system + more providers
 
 ## License
 

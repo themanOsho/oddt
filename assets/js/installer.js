@@ -6,12 +6,26 @@ let currentStep = 1;
 const totalSteps = 5;
 let isDbValidated = false;
 
-// Custom Functional Purple Styled Icons
 const eyeSVG = `<svg xmlns="w3.org" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-eye text-purple-600"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>`;
 const eyeOffSVG = `<svg xmlns="w3.org" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-eye-off text-purple-600"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M10.585 10.587a2 2 0 0 0 2.829 2.828" /><path d="M16.681 16.673a8.717 8.717 0 0 1 -4.681 1.327c-3.6 0 -6.6 -2 -9 -6c1.272 -2.12 2.712 -3.678 4.32 -4.674m2.86 -1.146a9.055 9.055 0 0 1 1.82 -.18c3.6 0 6.6 2 9 6c-.666 1.11 -1.379 2.067 -2.138 2.87" /><path d="M3 3l18 18" /></svg>`;
 
+const getElement = (id) => document.getElementById(id);
+const getValue = (id) => {
+    const element = getElement(id);
+    return element ? element.value.trim() : '';
+};
+
+const setPrimaryButtonState = (button, enabled) => {
+    if (!button) return;
+    button.disabled = !enabled;
+    button.className = enabled
+        ? 'flex-1 bg-[#1E1E1E] text-white py-4 rounded-2xl text-lg font-semibold hover:bg-slate-800 transition'
+        : 'flex-1 bg-slate-200 text-slate-400 py-4 rounded-2xl text-lg font-semibold cursor-not-allowed transition';
+};
+
 function showToast(message, type = 'error') {
-    const container = document.getElementById('toast-container');
+    const container = getElement('toast-container');
+    if (!container) return;
     const toast = document.createElement('div');
     toast.className = `toast px-6 py-4 rounded-2xl shadow-xl text-white font-medium flex items-center gap-3 ${type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'}`;
     toast.innerHTML = `<span>${message}</span>`;
@@ -30,10 +44,10 @@ function togglePasswordVisibility(inputId, btn) {
     }
 }
 
-// Security Reset: Forces passwords to mask instantly on navigation
+// Ensure password fields are masked when navigating between installer steps.
 function resetPasswordVisibility() {
     ['admin_pass', 'admin_pass_confirm'].forEach(id => {
-        const input = document.getElementById(id);
+        const input = getElement(id);
         if (input) input.type = 'password';
     });
     const buttons = document.querySelectorAll('#step-3 button[type="button"]');
@@ -41,8 +55,10 @@ function resetPasswordVisibility() {
 }
 
 function updateProgress() {
+    const progressBar = getElement('progress');
+    if (!progressBar) return;
     const percent = ((currentStep / totalSteps) * 100) + '%';
-    document.getElementById('progress').style.width = percent;
+    progressBar.style.width = percent;
 }
 
 function nextStep() {
@@ -51,18 +67,22 @@ function nextStep() {
         return;
     }
     resetPasswordVisibility();
-    document.getElementById(`step-${currentStep}`).classList.remove('active');
+    const currentStepElement = getElement(`step-${currentStep}`);
+    if (currentStepElement) currentStepElement.classList.remove('active');
     currentStep++;
-    document.getElementById(`step-${currentStep}`).classList.add('active');
+    const nextStepElement = getElement(`step-${currentStep}`);
+    if (nextStepElement) nextStepElement.classList.add('active');
     updateProgress();
 }
 
 function prevStep() {
     if (currentStep <= 1) return;
     resetPasswordVisibility();
-    document.getElementById(`step-${currentStep}`).classList.remove('active');
+    const currentStepElement = getElement(`step-${currentStep}`);
+    if (currentStepElement) currentStepElement.classList.remove('active');
     currentStep--;
-    document.getElementById(`step-${currentStep}`).classList.add('active');
+    const previousStepElement = getElement(`step-${currentStep}`);
+    if (previousStepElement) previousStepElement.classList.add('active');
     updateProgress();
 }
 
@@ -84,62 +104,57 @@ function checkPasswordStrength(password) {
 }
 
 function validateAdminStep() {
-    // Structural Grooming: Remove dangerous trailing spaces before validation checks
-    const email = document.getElementById('admin_email').value.trim();
-    const pass = document.getElementById('admin_pass').value.trim();
-    const confirmPass = document.getElementById('admin_pass_confirm').value.trim();
-    const nextBtn = document.getElementById('admin-next-btn');
-    const matchText = document.getElementById('match-text');
+    // Normalize user input before validation.
+    const email = getValue('admin_email');
+    const pass = getValue('admin_pass');
+    const confirmPass = getValue('admin_pass_confirm');
+    const nextBtn = getElement('admin-next-btn');
+    const matchText = getElement('match-text');
 
-    // Real-Time Strength Meter Tracker
     const strength = checkPasswordStrength(pass);
-    document.getElementById('strength-text').innerText = `Strength: ${strength.text}`;
+    const strengthText = getElement('strength-text');
+    if (strengthText) strengthText.innerText = `Strength: ${strength.text}`;
+
     for (let i = 1; i <= 4; i++) {
-        const bar = document.getElementById(`strength-bar-${i}`);
-        if (i <= strength.score && pass.length > 0) {
-            bar.className = `h-full w-1/4 ${strength.color} transition-colors duration-300`;
-        } else {
-            bar.className = 'h-full w-1/4 bg-slate-100 transition-colors duration-300';
-        }
+        const bar = getElement(`strength-bar-${i}`);
+        if (!bar) continue;
+        bar.className = i <= strength.score && pass.length > 0
+            ? `h-full w-1/4 ${strength.color} transition-colors duration-300`
+            : 'h-full w-1/4 bg-slate-100 transition-colors duration-300';
     }
 
-    // Passwords Match Feedback Validation Block
-    if (confirmPass.length > 0 && pass !== confirmPass) {
-        matchText.classList.remove('hidden');
-    } else {
-        matchText.classList.add('hidden');
+    if (matchText) {
+        matchText.classList.toggle('hidden', confirmPass.length === 0 || pass === confirmPass);
     }
 
-    // Next step verification rule
     const isFormValid = email.includes('@') && strength.score >= 2 && pass === confirmPass;
-
-    if (isFormValid) {
-        nextBtn.disabled = false;
-        nextBtn.className = "flex-1 bg-[#1E1E1E] text-white py-4 rounded-2xl text-lg font-semibold hover:bg-slate-800 transition";
-    } else {
-        nextBtn.disabled = true;
-        nextBtn.className = "flex-1 bg-slate-200 text-slate-400 py-4 rounded-2xl text-lg font-semibold cursor-not-allowed transition";
-    }
+    setPrimaryButtonState(nextBtn, isFormValid);
 }
 
 function preparePreviewAndNext() {
-    document.getElementById('preview_db_host').innerText = document.getElementById('db_host').value.trim();
-    document.getElementById('preview_db_name').innerText = document.getElementById('db_name').value.trim();
-    document.getElementById('preview_db_user').innerText = document.getElementById('db_user').value.trim();
-    document.getElementById('preview_admin_email').innerText = document.getElementById('admin_email').value.trim();
+    const previewHost = getElement('preview_db_host');
+    const previewName = getElement('preview_db_name');
+    const previewUser = getElement('preview_db_user');
+    const previewEmail = getElement('preview_admin_email');
+
+    if (previewHost) previewHost.innerText = getValue('db_host');
+    if (previewName) previewName.innerText = getValue('db_name');
+    if (previewUser) previewUser.innerText = getValue('db_user');
+    if (previewEmail) previewEmail.innerText = getValue('admin_email');
+
     nextStep();
 }
 
 function testDatabase() {
     const formData = new FormData();
     formData.append('action', 'test_db');
-    formData.append('install_token', document.getElementById('install_token').value); // Security Token
-    formData.append('db_host', document.getElementById('db_host').value.trim());
-    formData.append('db_name', document.getElementById('db_name').value.trim());
-    formData.append('db_user', document.getElementById('db_user').value.trim());
-    formData.append('db_pass', document.getElementById('db_pass').value);
+    formData.append('install_token', getValue('install_token'));
+    formData.append('db_host', getValue('db_host'));
+    formData.append('db_name', getValue('db_name'));
+    formData.append('db_user', getValue('db_user'));
+    formData.append('db_pass', getElement('db_pass') ? getElement('db_pass').value : '');
 
-    const nextBtn = document.getElementById('db-next-btn');
+    const nextBtn = getElement('db-next-btn');
 
     fetch('installer.php', { method: 'POST', body: formData })
         .then(res => res.json())
@@ -147,13 +162,11 @@ function testDatabase() {
             if (data.status === 'success') {
                 showToast(data.message, 'success');
                 isDbValidated = true;
-                nextBtn.disabled = false;
-                nextBtn.className = "flex-1 bg-[#1E1E1E] text-white py-4 rounded-2xl text-lg font-semibold hover:bg-slate-800 transition";
+                setPrimaryButtonState(nextBtn, true);
             } else {
                 showToast(data.message, 'error');
                 isDbValidated = false;
-                nextBtn.disabled = true;
-                nextBtn.className = "flex-1 bg-slate-200 text-slate-400 py-4 rounded-2xl text-lg font-semibold cursor-not-allowed transition";
+                setPrimaryButtonState(nextBtn, false);
             }
         })
         .catch(() => {
@@ -164,17 +177,19 @@ function testDatabase() {
 function startInstallation() {
     const formData = new FormData();
     formData.append('action', 'install');
-    formData.append('install_token', document.getElementById('install_token').value); // Security Token
-    formData.append('db_host', document.getElementById('db_host').value.trim());
-    formData.append('db_name', document.getElementById('db_name').value.trim());
-    formData.append('db_user', document.getElementById('db_user').value.trim());
-    formData.append('db_pass', document.getElementById('db_pass').value);
-    formData.append('admin_email', document.getElementById('admin_email').value.trim());
-    formData.append('admin_pass', document.getElementById('admin_pass').value.trim());
+    formData.append('install_token', getValue('install_token'));
+    formData.append('db_host', getValue('db_host'));
+    formData.append('db_name', getValue('db_name'));
+    formData.append('db_user', getValue('db_user'));
+    formData.append('db_pass', getElement('db_pass') ? getElement('db_pass').value : '');
+    formData.append('admin_email', getValue('admin_email'));
+    formData.append('admin_pass', getValue('admin_pass'));
 
-    const installBtn = document.getElementById('install-btn');
-    installBtn.disabled = true;
-    installBtn.innerText = "Installing Engine...";
+    const installBtn = getElement('install-btn');
+    if (installBtn) {
+        installBtn.disabled = true;
+        installBtn.innerText = 'Installing Engine...';
+    }
 
     fetch('installer.php', { method: 'POST', body: formData })
         .then(res => {
@@ -183,19 +198,25 @@ function startInstallation() {
         })
         .then(data => {
             if (data.status === 'success') {
-                document.getElementById(`step-${currentStep}`).classList.remove('active');
+                const currentStepElement = getElement(`step-${currentStep}`);
+                if (currentStepElement) currentStepElement.classList.remove('active');
                 currentStep = 5;
-                document.getElementById(`step-${currentStep}`).classList.add('active');
+                const nextStepElement = getElement(`step-${currentStep}`);
+                if (nextStepElement) nextStepElement.classList.add('active');
                 updateProgress();
             } else {
                 showToast(data.message || 'Installation routine failed.');
-                installBtn.disabled = false;
-                installBtn.innerText = "Install Now";
+                if (installBtn) {
+                    installBtn.disabled = false;
+                    installBtn.innerText = 'Install Now';
+                }
             }
         })
         .catch(() => {
             showToast('Network processing error. Ensure server execution configuration limits match application scale.');
-            installBtn.disabled = false;
-            installBtn.innerText = "Install Now";
+            if (installBtn) {
+                installBtn.disabled = false;
+                installBtn.innerText = 'Install Now';
+            }
         });
 }

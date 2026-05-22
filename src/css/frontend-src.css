@@ -1,0 +1,14 @@
+/* ODDT frontend source CSS
+   This build does NOT include Tailwind's base (preflight) to avoid interfering with the host site's styles.
+*/
+
+@tailwind components;
+@tailwind utilities;
+
+/* Frontend-specific customizations */
+.oddt-widget-root {
+  /* fallback values can be set here */
+  --oddt-bg: #2563eb;
+  --oddt-hover: #1e40af;
+  --oddt-dropdown-bg: #ffffff;
+}

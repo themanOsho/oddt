@@ -1,7 +1,6 @@
 <?php 
-    /**
-     * oddtranslator installer form
-     */
+
+// oddt\installer-form.php
 
 ?>
 <!DOCTYPE html>
@@ -84,7 +83,7 @@
             <!-- Step 3: Admin Configuration -->
             <div id="step-3" class="step">
                 <h2 class="text-2xl font-semibold mb-1">Create Admin Account</h2>
-                <p class="text-sm text-slate-500 mb-6">Use these credentials to access your dashboard at <span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-purple-600 font-medium text-xs">yourdomain.com</span> to manage translations.</p>
+                <p class="text-sm text-slate-500 mb-6">Use these credentials to access your dashboard at <span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-purple-600 font-medium text-xs">yourdomain.com/oddt/admin</span> to manage translations.</p>
                 
                 <div class="space-y-5">
                     <div>

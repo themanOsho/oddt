@@ -3,6 +3,8 @@
  * oddtranslator Installer - Secure Backend Logic
  */
 
+// oddt\installer.php
+
 // 1. Immediate Hard Lock Check (Prevents any execution if already installed)
 if (file_exists(__DIR__ . '/.installed')) {
     header('HTTP/1.1 403 Forbidden');

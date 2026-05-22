@@ -17,6 +17,9 @@ Thumbs.db
 .idea/
 *.swp
 
+# Node.js modules
+node_modules/
+
 # Docs folder (for internal notes)
 docs/
 

@@ -72,7 +72,7 @@ foreach ($candidates as $relativePath) {
                     <?php endforeach ?>
                 </ul>
 
-                <p class="text-sm leading-6 text-slate-500">If you want to enable oddtranslator manually in other templates, add this line to the very top of your file.</p>
+                <p class="text-sm leading-6 text-slate-500">To enable oddtranslator manually in additional templates, add the following line at the top of each file.</p>
                 <div class="code-block mt-3"><?= htmlspecialchars($bootstrapLine) ?></div>
 
                 <div class="flex flex-col gap-4 pt-2 sm:flex-row">
